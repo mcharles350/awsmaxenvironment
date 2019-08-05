@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  
+Parameters:
+  
+Resources:
+  maxS3Stack:
+    Type: AWS::Cloudformation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/
+      TimeoutInMinutes: '30'
+
+  maxVpcStack:
+    Type: AWS::Cloudformation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/
+      TimeoutInMinutes: '30'
+  
+Outputs:
+  s3Ref:
+    Value:
+      Ref: maxS3Stack
+  vpcRef:
+    Value: 
+      Ref: maxVpcStack
+  outputFromNestedStack:
+    Value:
+      GetAtt: myStack.Outputs.BucketName

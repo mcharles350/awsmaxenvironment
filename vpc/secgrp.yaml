@@ -1,0 +1,8 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: VPC Nested Stack for Max's Development Environment
+
+Parameters:
+
+Resources:
+
+Outputs:

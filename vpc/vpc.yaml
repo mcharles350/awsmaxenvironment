@@ -1,0 +1,300 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: VPC Nested Stack for Max's Development Environment
+  
+Parameters:
+  VpcCidr:
+    Type: String
+    Default: 10.0.0.0/16
+    Description: VPC IP CIDR Block 
+
+  PrivateSubnet1:
+    Type: String
+    Default: 10.0.0.0/24
+    Description: Private Subnet IP CIDR Block
+
+  PrivateSubnet2:
+    Type: String
+    Default: 10.1.0.0/24
+    Description: Private Subnet IP CIDR Block  
+
+  PublicSubnet1:
+    Type: String
+    Default: 10.2.0.0/24
+    Description: Public Subnet IP CIDR Block
+
+  PublicSubnet2:      
+    Type: String
+    Default: 10.3.0.0/24
+    Description: Public Subnet IP CIDR Block 
+  
+Resources:
+  # VPC Section
+  maxVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock:
+        Ref: VpcCidr
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      InstanceTenancy: 'default'
+      Tags:
+        - Key: Name
+          Value: maxVpc
+        - Key: Environment
+          Value: Development
+  
+  # Subnet Section
+  maxPrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AssignIpv6AddressOnCreation: 'false'
+      CidrBlock: 
+        Ref: PrivateSubnet1
+      AvailabilityZone: us-east-2a
+      MapPublicIpOnLanuch: 'false'
+      Tags:
+        - Key: Name
+          Value: maxPrivateSubnet1
+        - Key: Environment
+          Value: Development
+      VpcId:
+        Ref: maxVpc
+    
+  maxPrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AssignIpv6AddressOnCreation: 'false'
+      CidrBlock:
+        Ref: PrivateSubnet2
+      AvailabilityZone: us-east-2c      
+      MapPublicIpOnLanuch: 'false'
+      Tags:
+        - Key: Name
+          Value: maxPrivateSubnet2
+        - Key: Environment
+          Value: Development
+      VpcId:
+        Ref: maxVpc
+
+  maxPublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AssignIpv6AddressOnCreation: 'false'
+      CidrBlock:
+        Ref: PublicSubnet1
+      AvailabilityZone: us-east-2b      
+      MapPublicIpOnLanuch: 'true'
+      Tags:
+        - Key: Name
+          Value: maxPublicSubnet1
+        - Key: Environment
+          Value: Development
+      VpcId:
+        Ref: maxVpc
+
+  maxPublicSubnet2: 
+    Type: AWS::EC2::Subnet
+    Properties:
+      AssignIpv6AddressOnCreation: 'true'
+      CidrBlock:
+        Ref: PublicSubnet2
+      AvailabilityZone: us-east-2d        
+      MapPublicIpOnLanuch: 'false'
+      Tags:
+        - Key: Name
+          Value: maxPublicSubnet2
+        - Key: Environment
+          Value: Development
+      VpcId:
+        Ref: maxVpc
+
+  maxPrivateSubnetAcl1:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId:
+        Ref: maxPrivateNACL
+      SubnetId:
+        Ref: maxPrivateSubnet1
+
+  maxPrivateSubnetAcl2:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId:
+        Ref: maxPrivateNACL
+      SubnetId:
+        Ref: maxPrivateSubnet2
+
+  maxPublicSubnetAcl1:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId:
+        Ref: maxPublicNACL
+      SubnetId:
+        Ref: maxPublicSubnet1
+
+  maxPublicSubnetAcl2:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId:
+        Ref: maxPublicNACL
+      SubnetId:
+        Ref:  maxPublicSubnet2
+
+  # Internet Gateway Section
+  maxIGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: maxIGW
+        - Key: Environment
+          Value: Development
+  
+  maxVpcIGW:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: 
+        Ref: maxVpc
+      InternetGatewayId:
+        Ref: maxIGW
+
+  # DHCP Option Section
+  maxDhcpOption:
+    Type: AWS::EC2::DHCPOptions
+    Properties:
+      DomainName: us-east-2.compute.internal
+      DomainNameServers:
+        - AmazonProvidedDNS
+
+  maxDhcpOptionAssociation:
+    Type: AWS::EC2::VPCDHCPOptionsAssociation
+    Properties:
+      VpcId:
+        Ref: maxVpc
+      DhcpOptionsId: 
+        Ref: maxDhcpOption
+
+  # Route Section
+  maxIGWRoute:
+    Type: AWS::EC2::Route
+    DependsOn: maxIGW
+    Properties:
+        RouteTableId:
+          Ref: maxPublicRoute
+        DestinationCidrBlock: 0.0.0.0/0
+        GatewayId:
+          Ref: maxIGW
+
+  # Route Table Section
+  maxPrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: maxVpc
+      Tags:
+        - Key: Name
+          Value: maxPrivateRoute
+
+  maxPublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: maxVpc
+      Tags:
+        - Key: Name
+          Value: maxPublicRoute    
+
+  maxPrivateRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: maxPrivateSubnet1
+      RouteTableId:
+        Ref: maxPrivateRoute
+
+  maxPrivateRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: maxPrivateSubnet2
+      RouteTableId:
+        Ref: maxPrivateRoute
+
+  maxPublicRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: maxPublicSubnet1
+      RouteTableId:
+        Ref: maxPublicRoute
+
+  maxPublicRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: maxPublicSubnet2
+      RouteTableId:
+        Ref: maxPublicRoute
+
+  # Network ACL
+  maxPrivateNACL:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: 
+        Ref: maxVpc
+      Tags:
+        - Key: Name
+          Value: maxPrivateNACL
+
+  maxPublicNACL:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: 
+        Ref: maxVpc
+      Tags:
+        - Key: Name
+          Value: maxPublicNACL
+
+  maxACL1:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: 'true'
+      Protocol: '-1'
+      RuleAction: allow
+      RuleNumber: '100'
+      NetworkAclId:
+        Ref: maxPrivateNACL
+
+  maxACL2:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Protocol: '-1'
+      RuleAction: allow
+      RuleNumber: '100'
+      NetworkAclId: 
+        Ref: maxPrivateNACL
+
+  maxACL3:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: 'true'
+      Protocol: '-1'
+      RuleAction: allow
+      RuleNumber: '100'
+      NetworkAclId: 
+        Ref: maxPublicNACL
+
+  maxACL4:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Protocol: '-1'
+      RuleAction: allow
+      RuleNumber: '100'
+      NetworkAclId: 
+        Ref: maxPublicNACL
+
+Outputs:

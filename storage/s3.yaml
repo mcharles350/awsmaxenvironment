@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: VPC Nested Stack for Max's Development Environment
+
+Parameters:
+
+Resources:
+  maxDevEnvironment:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Sub: 'maxDevEnvironment-${AWS::Region}-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Name
+          Value:
+            Ref: maxDevEnvironment
+
+  maxDevEnvironmentPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: maxDevEnvironment
+      PolicyDocument:
+        Statement:
+          -
+            Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                - 
+                  - "arn:aws:s3:::"
+                  -
+                    Ref: maxDevEnvironment
+                  - "/*"
+            Principal: "*"
+
+Outputs:
+  maxBucketName:
+    Value:
+      Ref: maxDevEnvironment
+    Description: Max Charles Development Environment for testing only.
