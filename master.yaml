@@ -1,35 +1,35 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: |
+Description: Master template for Max's development environment
   
 Parameters:
   VpcCidr:
     Description: Enter the VPC CIDR Block
     Type: String
     ConstraintDescription: Support subnet sizes of /16 to /22 only. i.e. 10.0.0.0/16
-    AllowedPattern: "^((\\d)+.){3}(0)\\/(16|17|18|19|20|21|22)"
+    AllowedPattern: "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$"
 
   PublicSubnetCIDR:
     Description: Public Subnet CIDR
     Type: String
-    AllowedPattern: "^(((\\d)+.){3}(0)\\/(18|19|20|21|22|23|24|25)|)"
+    AllowedPattern: "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$"
 
   PublicSubnetCIDR2:
     Description: Public Subnet 2 CIDR
     Type: String
-    AllowedPattern: "^(((\\d)+.){3}(0)\\/(18|19|20|21|22|23|24|25)|)"
+    AllowedPattern: "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$"
 
   PrivateSubnetCIDR:
     Description: Private Subnet CIDR
     Type: String
-    AllowedPattern: "^(((\\d)+.){3}(0)\\/(18|19|20|21|22|23|24|25)|)"
+    AllowedPattern: "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$"
 
   PrivateSubnetCIDR2:
     Description: Private Subnet 2 CIDR
     Type: String
-    AllowedPattern: "^(((\\d)+.){3}(0)\\/(18|19|20|21|22|23|24|25)|)"
+    AllowedPattern: "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$"
 
 Metadata:
-  AWS::Cloudformation::Interface:
+  AWS::CloudFormation::Interface:
     ParameterGroups:
     - Label:
         default: Network
@@ -56,33 +56,15 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       Parameters:
-        maxVpc:
+        VpcCidr:
           Ref: VpcCidr      
-        maxPublicSubnet:
+        PublicSubnetCIDR:
           Ref: PublicSubnetCIDR
-        maxPublicSubnet2:
+        PublicSubnetCIDR2:
           Ref: PublicSubnetCIDR2
-        maxPrivateSubnet:
+        PrivateSubnetCIDR:
           Ref: PrivateSubnetCIDR
-        maxPrivateSubnet2:
+        PrivateSubnetCIDR2:
           Ref: PrivateSubnetCIDR2
       TemplateURL: https://maxdevenvironment.s3.us-east-2.amazonaws.com/network/main.yaml
       TimeoutInMinutes: '30'
-
-  maxNACLStack:
-    Type: AWS::CloudFormation::Stack
-    DependsOn:
-      - maxVpcStack
-    Properties:
-      maxVpc:
-        Ref: VpcCidr
-      TemplateURL: https://maxdevenvironment.s3.us-east-2.amazonaws.com/network/nacl.yaml
-      TimeoutInMinutes: '30'
-  
-Outputs:
-  vpcRef:
-    Value: 
-      Ref: maxVpcStack
-  outputFromNestedStack:
-    Value:
-      GetAtt: myStack.Outputs.BucketName
