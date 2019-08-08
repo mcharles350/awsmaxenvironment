@@ -4,22 +4,19 @@ Description: |
 Parameters:
   
 Resources:
-  maxS3Stack:
-    Type: AWS::Cloudformation::Stack
-    Properties:
-      TemplateURL: https://s3.amazonaws.com/
-      TimeoutInMinutes: '30'
-
   maxVpcStack:
     Type: AWS::Cloudformation::Stack
     Properties:
-      TemplateURL: https://s3.amazonaws.com/
+      TemplateURL: https://maxdevenvironment.s3.us-east-2.amazonaws.com/vpc/vpc.yaml
+      TimeoutInMinutes: '30'
+  
+  maxSecGroupStack:
+    Type: AWS::Cloudformation::Stack
+    Properties:
+      TemplateURL: https://maxdevenvironment.s3.us-east-2.amazonaws.com/vpc/secgrp.yaml
       TimeoutInMinutes: '30'
   
 Outputs:
-  s3Ref:
-    Value:
-      Ref: maxS3Stack
   vpcRef:
     Value: 
       Ref: maxVpcStack

@@ -2,19 +2,23 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: VPC Nested Stack for Max's Development Environment
 
 Parameters:
+  BucketName:
+    Type: String
+    Default: maxdevenvironment
+    Description: Bucket name for the S3 bucket
 
 Resources:
   maxDevEnvironment:
     Type: AWS::S3::Bucket
     Properties:
       BucketName:
-        Sub: 'maxDevEnvironment-${AWS::Region}-${AWS::AccountId}'
+        Ref: BucketName
       VersioningConfiguration:
         Status: Enabled
       Tags:
         - Key: Name
           Value:
-            Ref: maxDevEnvironment
+            Ref: BucketName
 
   maxDevEnvironmentPolicy:
     Type: AWS::S3::BucketPolicy
@@ -23,19 +27,13 @@ Resources:
         Ref: maxDevEnvironment
       PolicyDocument:
         Statement:
-          -
+          - 
             Action:
               - 's3:GetObject'
             Effect: Allow
             Resource:
-              Fn::Join:
-                - ""
-                - 
-                  - "arn:aws:s3:::"
-                  -
-                    Ref: maxDevEnvironment
-                  - "/*"
-            Principal: "*"
+              Sub: '${maxDevEnvironment.Arn}/*'
+            Principal: '*'
 
 Outputs:
   maxBucketName:
