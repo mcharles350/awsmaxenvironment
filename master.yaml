@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  
+Parameters:
+  VpcCidr:
+    Description: Enter the VPC CIDR Block
+    Type: String
+    ConstraintDescription: Support subnet sizes of /16 to /22 only. i.e. 10.0.0.0/16
+    AllowedPattern: "^((\\d)+.){3}(0)\\/(16|17|18|19|20|21|22)"
+
+  PublicSubnetCIDR:
+    Description: Public Subnet CIDR
+    Type: String
+    AllowedPattern: "^(((\\d)+.){3}(0)\\/(18|19|20|21|22|23|24|25)|)"
+
+  PublicSubnetCIDR2:
+    Description: Public Subnet 2 CIDR
+    Type: String
+    AllowedPattern: "^(((\\d)+.){3}(0)\\/(18|19|20|21|22|23|24|25)|)"
+
+  PrivateSubnetCIDR:
+    Description: Private Subnet CIDR
+    Type: String
+    AllowedPattern: "^(((\\d)+.){3}(0)\\/(18|19|20|21|22|23|24|25)|)"
+
+  PrivateSubnetCIDR2:
+    Description: Private Subnet 2 CIDR
+    Type: String
+    AllowedPattern: "^(((\\d)+.){3}(0)\\/(18|19|20|21|22|23|24|25)|)"
+
+Metadata:
+  AWS::Cloudformation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Network
+      Parameters:
+        - VpcCidr
+        - PublicSubnetCIDR
+        - PublicSubnetCIDR2
+        - PrivateSubnetCIDR
+        - PrivateSubnetCIDR2
+    ParameterLabels:
+      VpcCidr:
+        default: VPC CIDR Block
+      PublicSubnetCIDR:
+        default: Public Subnet CIDR
+      PublicSubnetCIDR2:
+        default: Public Subnet 2 CIDR
+      PrivateSubnetCIDR:
+        default: Private Subnet CIDR
+      PrivateSubnetCIDR2:
+        default: Private Subnet 2 CIDR  
+
+Resources:
+  maxVpcStack:
+    Type: AWS::Cloudformation::Stack
+    Properties:
+      Parameters:
+        maxVpc:
+          Ref: VpcCidr      
+        maxPublicSubnet:
+          Ref: PublicSubnetCIDR
+        maxPublicSubnet2:
+          Ref: PublicSubnetCIDR2
+        maxPrivateSubnet:
+          Ref: PrivateSubnetCIDR
+        maxPrivateSubnet2:
+          Ref: PrivateSubnetCIDR2
+      TemplateURL: https://maxdevenvironment.s3.us-east-2.amazonaws.com/network/vpc.yaml
+      TimeoutInMinutes: '30'
+
+  maxNACLStack:
+    Type: AWS::Cloudformation::Stack
+    DependsOn:
+      - maxVpcStack
+    Properties:
+      maxVpc:
+        Ref: VpcCidr
+      TemplateURL: https://maxdevenvironment.s3.us-east-2.amazonaws.com/network/nacl.yaml
+      TimeoutInMinutes: '30'
+  
+Outputs:
+  vpcRef:
+    Value: 
+      Ref: maxVpcStack
+  outputFromNestedStack:
+    Value:
+      GetAtt: myStack.Outputs.BucketName
