@@ -53,7 +53,7 @@ Metadata:
 
 Resources:
   maxVpcStack:
-    Type: AWS::Cloudformation::Stack
+    Type: AWS::CloudFormation::Stack
     Properties:
       Parameters:
         maxVpc:
@@ -66,11 +66,11 @@ Resources:
           Ref: PrivateSubnetCIDR
         maxPrivateSubnet2:
           Ref: PrivateSubnetCIDR2
-      TemplateURL: https://maxdevenvironment.s3.us-east-2.amazonaws.com/network/vpc.yaml
+      TemplateURL: https://maxdevenvironment.s3.us-east-2.amazonaws.com/network/main.yaml
       TimeoutInMinutes: '30'
 
   maxNACLStack:
-    Type: AWS::Cloudformation::Stack
+    Type: AWS::CloudFormation::Stack
     DependsOn:
       - maxVpcStack
     Properties:
